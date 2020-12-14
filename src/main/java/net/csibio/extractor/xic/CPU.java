@@ -49,9 +49,9 @@ public class CPU {
     /**
      * LowerBound with CPU for multiple targets
      *
-     * @param array
-     * @param targets
-     * @return
+     * @param array an ordered array
+     * @param targets targets to search
+     * @return the low bound indexes of the targets in the ordered array
      */
     public static int[] lowerBound(float[] array, float[] targets) {
         int[] results = new int[targets.length];
@@ -64,11 +64,11 @@ public class CPU {
     /**
      * LowerBound with CPU for single target mz
      *
-     * @param array
-     * @param target
-     * @return
+     * @param array an ordered array
+     * @param target target to search
+     * @return the low bound index of the target in the ordered array
      */
-    public static int lowerBound(float[] array, Float target) {
+    public static int lowerBound(float[] array, float target) {
         int rightIndex = array.length - 1;
 
         if (target <= array[0]) {

@@ -42,25 +42,29 @@ public class GPU {
     public static cl_kernel kernel;
 
     /**
+     * Whether the GPU kernel is initialized. If not, GPU related code cannot be run
      * GPU内核是否初始化,如果没有初始化则无法运行GPU相关的代码
      */
     public static boolean init = false;
 
     /**
+     * By default, each kernel processes five spectra. There are five types of kernels: 1, 5, 10, 20, and 50
      * 默认每一个kernel处理5张光谱图,一共有1,5,10,20,50这5种kernel
      */
     public static int countInBatch = 5;
 
     /**
-     * 在多张光谱图中查找多个目标mz
-     *
-     * @param mzArrayList 多张光谱图中的mz数组列表
-     * @param intensityArrayList 多张光谱图中的intensity数组列表
-     * @param targets
-     * @param mzWindow
+     * the extractor window mz, if it is null, it will be set to 0.05 as default
+     */
+    public static float mzWindow = 0.05f;
+
+    /**
+     * @param mzArrayList  multiple mz array list
+     * @param intensityArrayList multiple intensity array list
+     * @param targets targets to search in the mz array
      * @return
      */
-    private static float[] lowerBound(List<float[]> mzArrayList, List<float[]> intensityArrayList, float[] targets, float mzWindow) {
+    private static float[] lowerBound(List<float[]> mzArrayList, List<float[]> intensityArrayList, float[] targets) {
         if (!init){
             System.out.println("Init the GpuStart with initialize method before invoke this method");
             return null;
@@ -85,7 +89,7 @@ public class GPU {
         }
 
         cl_mem resultsMem = clCreateBuffer(context, CL_MEM_WRITE_ONLY, Sizeof.cl_float * targets.length * countInBatch, Pointer.to(results), null);
-        lowerBound(paramsList, targetsMem, targets.length, resultsMem, mzWindow);
+        lowerBound(paramsList, targetsMem, targets.length, resultsMem);
 
         // Read the output data
         clEnqueueReadBuffer(commandQueue, resultsMem, CL_TRUE, 0, targets.length * Sizeof.cl_float, Pointer.to(results), 0, null, null);
@@ -108,11 +112,10 @@ public class GPU {
      * @param targetsMem
      * @param targetsLength
      * @param resultsMem
-     * @param mzWindow
      */
     private static void lowerBound(List<ExtractorParams> paramsList,
                                    cl_mem targetsMem, int targetsLength,
-                                   cl_mem resultsMem, float mzWindow) {
+                                   cl_mem resultsMem) {
         // Set the arguments for the kernel
         int a = 0;
         clSetKernelArg(kernel, a++, Sizeof.cl_mem, Pointer.to(targetsMem));
@@ -140,6 +143,7 @@ public class GPU {
 
     /**
      * Initialize a default OpenCL context, command queue, program and kernel
+     * @param initCountInBatch count of spectrums in every batch
      */
     public static void initialize(int initCountInBatch) {
         // The platform, device type and device number
